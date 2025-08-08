@@ -1,19 +1,20 @@
 import numpy as np
-from scipy.ndimage import gaussian_filter
 
-def generate_patchy_data(grid, n_patches, patch_radius, gaussian_smoothing_radius, n_data, seed, state):
-    bg_noise = 0.01
-    patch_strength = 10
+def generate_patchy_data(grid, n_patches, patch_radius, SNR, n_data, state, seed=None):
+    var_spots = n_patches*patch_radius**2
+    var_noise = SNR * var_spots
 
     dx, dy = grid[:, -1, -1] - grid[:, -2, -2]
     lx, ly = grid[:, -1, -1] + np.array([dx, dy])
     if seed:
         np.random.seed(seed)
-    prior_distribution = np.random.rand(*np.shape(grid[0]))*bg_noise
+    signal = np.zeros_like(grid[0])
+    noise  = np.random.normal(scale=np.sqrt(var_noise), size=np.shape(grid[0]))
     rand_centers = np.random.rand(n_patches,2)*np.array([lx, ly])
     for n in np.arange(n_patches):
-        prior_distribution = prior_distribution + patch_strength*np.exp((-(grid[0]-rand_centers[n,0])**2 -(grid[1]-rand_centers[n,1])**2 )/patch_radius)
-    prior_distribution = gaussian_filter(prior_distribution, gaussian_smoothing_radius)
+        signal = signal + np.exp((-(grid[0]-rand_centers[n,0])**2 -(grid[1]-rand_centers[n,1])**2 )/(2*var_spots))
+    
+    prior_distribution = signal + noise
 
     prior_max = np.max(prior_distribution)
 
@@ -31,7 +32,7 @@ def generate_patchy_data(grid, n_patches, patch_radius, gaussian_smoothing_radiu
 
     data = np.array(data)
 
-    return data, prior_distribution, angles
+    return data, prior_distribution, angles, signal, noise
 
 def generate_angles(grid, dx, dy, distribution, state):
     angles = np.zeros_like(grid[0])

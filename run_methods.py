@@ -4,6 +4,7 @@ from scipy.ndimage import gaussian_filter
 from src.generate_data import generate_patchy_data
 from src.methods import box, kNN, rbf, voronoi
 from src.compare_distributions import compare_density_error, compare_field_error
+from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 
 lx = 500; ly = 500
 dx = 1; dy = 1
@@ -11,18 +12,33 @@ fine_grid_x = np.arange(0, lx, dx)
 fine_grid_y = np.arange(0, ly, dy)
 fine_grid   = np.array(np.meshgrid(fine_grid_x, fine_grid_y, indexing='ij'))
 
-data, prior_distribution, angle_field = generate_patchy_data(fine_grid, n_patches=5, patch_radius=10, gaussian_smoothing_radius=10, n_data=100, seed=2, state='homeotropic')
+data, prior_distribution, angle_field, signal, noise = generate_patchy_data(fine_grid, n_patches=10, patch_radius=5, SNR=0.001, n_data=100, seed=2, state='homeotropic')
 
 prior_distribution = prior_distribution/np.sum(prior_distribution*dx*dy)
 
-fig, ax = plt.subplots(ncols=1)
-p1 = ax.pcolormesh(fine_grid[0], fine_grid[1], prior_distribution)
-ax.quiver(fine_grid[0,::20,::20], fine_grid[1,::20,::20], np.cos(angle_field[::20, ::20]), np.sin(angle_field[::20, ::20]))
-ax.axis('equal')
-plt.colorbar(p1)
-plt.scatter(data[:,0], data[:,1], color='red', marker='x')
-#plt.quiver(data[:,0], data[:,1], np.cos(data[:,2]), np.sin(data[:,2]))
-ax.axis('off')
+fig, ax = plt.subplots(ncols=3)
+
+cax1 = make_axes_locatable(ax[0]).append_axes("right", size='2%', pad='2%')
+p1 = ax[0].pcolormesh(fine_grid[0], fine_grid[1], signal)
+ax[0].quiver(fine_grid[0,::20,::20], fine_grid[1,::20,::20], np.cos(angle_field[::20, ::20]), np.sin(angle_field[::20, ::20]))
+ax[0].axis('equal')
+plt.colorbar(p1, cax=cax1)
+ax[0].axis('off')
+
+cax2 = make_axes_locatable(ax[1]).append_axes("right", size='2%', pad='2%')
+p2 = ax[1].pcolormesh(fine_grid[0], fine_grid[1], noise)
+ax[1].quiver(fine_grid[0,::20,::20], fine_grid[1,::20,::20], np.cos(angle_field[::20, ::20]), np.sin(angle_field[::20, ::20]))
+ax[1].axis('equal')
+plt.colorbar(p2, cax = cax2)
+ax[1].axis('off')
+
+cax3 = make_axes_locatable(ax[2]).append_axes("right", size='2%', pad='2%')
+p3 = ax[2].pcolormesh(fine_grid[0], fine_grid[1], prior_distribution)
+ax[2].quiver(fine_grid[0,::20,::20], fine_grid[1,::20,::20], np.cos(angle_field[::20, ::20]), np.sin(angle_field[::20, ::20]))
+ax[2].axis('equal')
+plt.colorbar(p3, cax = cax3)
+ax[2].scatter(data[:,0], data[:,1], color='red', marker='x')
+ax[2].axis('off')
 
 cdx = 10; cdy = 10
 coarse_grid_x = np.arange(0, lx, cdx)
