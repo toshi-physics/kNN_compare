@@ -1,19 +1,22 @@
 import numpy as np
 
 def generate_patchy_data(grid, n_patches, patch_radius, SNR, n_data, state, seed=None):
-    var_spots = n_patches*patch_radius**2
-    var_noise = SNR * var_spots
+    var_spots = 0.5*patch_radius**2
 
     dx, dy = grid[:, -1, -1] - grid[:, -2, -2]
     lx, ly = grid[:, -1, -1] + np.array([dx, dy])
     if seed:
         np.random.seed(seed)
     signal = np.zeros_like(grid[0])
-    noise  = np.random.normal(scale=np.sqrt(var_noise), size=np.shape(grid[0]))
     rand_centers = np.random.rand(n_patches,2)*np.array([lx, ly])
     for n in np.arange(n_patches):
-        signal = signal + np.exp((-(grid[0]-rand_centers[n,0])**2 -(grid[1]-rand_centers[n,1])**2 )/(2*var_spots))
-    
+        signal = signal + np.exp((-(grid[0]-rand_centers[n,0])**2 -(grid[1]-rand_centers[n,1])**2 )/(2*var_spots)) / np.sqrt(2*np.pi*var_spots)
+
+    signal = signal / np.sum(signal*dx*dy) #normalise the signal
+    E_noise_sq = np.max(signal)**2 / SNR   #define SNR for center of a spot
+
+    noise  = np.sqrt(E_noise_sq/4)*np.random.rand(*np.shape(grid[0])) 
+
     prior_distribution = signal + noise
 
     prior_max = np.max(prior_distribution)

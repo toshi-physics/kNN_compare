@@ -51,5 +51,4 @@ def box_average_scalar_field(lx, ly, pos_data, field, box_size, sweep_size): #da
             empty_boxes+=1
         else:
             scalar_field[box%nbox_x, box//nbox_x] = np.mean(field[cellsinbox])
-    print(empty_boxes)
     return scalar_field

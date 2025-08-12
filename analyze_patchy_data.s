@@ -11,7 +11,7 @@ src_dir="$(realpath "${sh_dir}/src")"
 data_dir="$(realpath "${sh_dir}/data")"
 
 if (( $# != 6 )); then
-    echo "Usage: create_patchy_data.s model state SNR ndata npatches runs"
+    echo "Usage: analyze_patchy_data.s model state SNR ndata npatches runs"
     exit 1
 fi
 
@@ -29,30 +29,7 @@ dy=1
 
 patch_r=15
 
-
 save_dir="${sh_dir}/data/$model/SNR_${SNR}_ndata_${ndata}_state_${state}/npatches_${npatches}_patchr_${patch_r}/lx_${lx}_ly_${ly}/"
-
-if [ ! -d $save_dir ]; then
-    mkdir -p $save_dir
-fi
-
-params_file="${save_dir}/parameters.json"
-
-echo \
-"
-{
-    "\"model\"" : \"$model\",
-    "\"SNR\"" : $SNR,
-    "\"ndata\"" : $ndata,
-    "\"state\"" : \"$state\",
-    "\"npatches\"" : $npatches,
-    "\"patch_r\"" : $patch_r,
-    "\"lx\"" : $lx,
-    "\"ly\"" : $ly,
-    "\"dx\"" : $dx,
-    "\"dy\"" : $dy
-}
-" > $params_file
 
 run_start=1
 drun=1
@@ -63,11 +40,7 @@ while (( $(bc <<< "$run <= $runs") ))
 do
     run_dir="${sh_dir}/data/$model/SNR_${SNR}_ndata_${ndata}_state_${state}/npatches_${npatches}_patchr_${patch_r}/lx_${lx}_ly_${ly}/run_${run}"
 
-    if [ ! -d $run_dir ]; then
-        mkdir -p $run_dir
-    fi
-
-    python3 -m models.$model -s $run_dir
+    python3 -m analysis.analyse_data -s $run_dir -cdx 5 -cdy 5 -bs 20 -ss 10 -knn 5 -rbf True -v True
 
     run=$(python3 -c "print('{:d}'.format($run+$drun))")
 done

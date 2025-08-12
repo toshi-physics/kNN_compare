@@ -7,19 +7,19 @@ def main():
 
     initParser = argparse.ArgumentParser(description='create_data')
     initParser.add_argument('-s','--save_dir', help='directory to save data')
-    initParser.add_argument('-cdx','--coarse_dx', help='coarse_dx', default=0)
-    initParser.add_argument('-cdy','--coarse_dy', help='coarse_dy', default=0)
-    initParser.add_argument('-bs','--box_size', help='box_size', default=0)
-    initParser.add_argument('-ss','--sweep_size', help='sweep_size', default=0)
-    initParser.add_argument('-knn','--k_knn', help='k used in kNN', default=0)
-    initParser.add_argument('-rbf','--rbf_bool', help='bool for rbf method', default=False)
-    initParser.add_argument('-v','--voronoi_bool', help='bool for voronoi method', default=False)
-
-    if not os.path.exists(savedir+'/analysis/'):
-        os.makedirs(savedir+'/analysis/')
+    initParser.add_argument('-cdx','--coarse_dx', help='coarse_dx', default=0, type=int)
+    initParser.add_argument('-cdy','--coarse_dy', help='coarse_dy', default=0, type=int)
+    initParser.add_argument('-bs','--box_size', help='box_size', default=0, type=int)
+    initParser.add_argument('-ss','--sweep_size', help='sweep_size', default=0, type=int)
+    initParser.add_argument('-knn','--k_knn', help='k used in kNN', default=0, type=int)
+    initParser.add_argument('-rbf','--rbf_bool', help='bool for rbf method', default=False, type=bool)
+    initParser.add_argument('-v','--voronoi_bool', help='bool for voronoi method', default=False, type=bool)
 
     initargs = initParser.parse_args()
     savedir = initargs.save_dir
+
+    if not os.path.exists(savedir+'/analysis/'):
+        os.makedirs(savedir+'/analysis/')
     
     if os.path.isfile(savedir+"/../parameters.json"):
 	    with open(savedir+"/../parameters.json") as jsonFile:
@@ -48,7 +48,7 @@ def main():
         coarse_grid_y = np.arange(0, ly, cdy)
         coarse_grid   = np.array(np.meshgrid(coarse_grid_x, coarse_grid_y, indexing='ij'))
 
-        if initargs.k_kNN:
+        if initargs.k_knn:
             
             kNN_k = initargs.k_knn
             kNN_density = kNN.kNN_average_density(coarse_grid, posdata, k=kNN_k)
@@ -69,7 +69,7 @@ def main():
         if initargs.rbf_bool:
             
             rbf_angles = rbf.rbf_average_scalar_field(coarse_grid, posdata, adata)
-            rbf_angles = np.mod(rbf_angles, np.pi)
+            rbf_angles = np.mod(rbf_angles, 2*np.pi)
 
             error_angle_rbf, _ = compare_field_error(angle_field, fine_grid, rbf_angles, coarse_grid)
 
@@ -78,7 +78,7 @@ def main():
         if initargs.voronoi_bool:
 
             v_angles = voronoi.voronoi_average_scalar_field(coarse_grid, posdata, adata)
-            v_angles = np.mod(v_angles, np.pi)
+            v_angles = np.mod(v_angles, 2*np.pi)
 
             error_angle_voronoi, _ = compare_field_error(angle_field, fine_grid, v_angles, coarse_grid)
 
