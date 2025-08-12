@@ -10,11 +10,10 @@ def main():
     initargs = initParser.parse_args()
     savedir = initargs.save_dir
     
-    if os.path.isfile(savedir+"/parameters.json"):
-	    with open(savedir+"/parameters.json") as jsonFile:
+    if os.path.isfile(savedir+"/../parameters.json"):
+	    with open(savedir+"/../parameters.json") as jsonFile:
               parameters = json.load(jsonFile)
     
-    run = parameters["run"]
     lx = parameters["lx"]
     ly = parameters["ly"]
     dx = parameters["dx"]
@@ -35,12 +34,12 @@ def main():
     if not os.path.exists(savedir+'/data/'):
         os.makedirs(savedir+'/data/')
 
-    np.savetxt(savedir+'/data/'+'posdata.csv', data[:,:2], delimiter=',')
-    np.savetxt(savedir+'/data/'+'adata.csv', data[:,-1], delimiter=',')
-    np.savetxt(savedir+'/data/'+'angle_field.csv', angle_field, delimiter=',')
-    np.savetxt(savedir+'/data/'+'og_distribution', prior_distribution, delimiter=',')
-    np.savetxt(savedir+'/data/'+'og_signal.csv', signal, delimiter=',')
-    np.savetxt(savedir+'/data/'+'og_noise.csv', noise, delimiter=',')
+    np.save(savedir+'/data/'+'posdata', data[:,:2])
+    np.save(savedir+'/data/'+'adata', data[:,-1])
+    np.save(savedir+'/data/'+'angle_field', angle_field)
+    np.save(savedir+'/data/'+'og_distribution', prior_distribution)
+    np.save(savedir+'/data/'+'og_signal', signal)
+    np.save(savedir+'/data/'+'og_noise', noise)
 
 if __name__=="__main__":
     main()
